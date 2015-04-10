@@ -1,6 +1,6 @@
 """ Views for interacting with the payment processor. """
 from django.conf import settings
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.generic import View
 from oscar.apps.checkout.mixins import OrderPlacementMixin
 from oscar.apps.payment.models import SourceType
@@ -10,6 +10,25 @@ from ecommerce.extensions.fulfillment.status import ORDER
 from ecommerce.extensions.fulfillment.mixins import FulfillmentMixin
 from ecommerce.extensions.payment.constants import ProcessorConstants as PC
 from ecommerce.extensions.payment.helpers import get_processor_class
+
+
+class ProcessorsListView(View):
+    """
+    Provides information about payment processors.
+    """
+    _names = None
+
+    def get(self, request):
+        """
+        Get the names of configured payment processors.
+
+        Returns:
+            list of unicode
+        """
+        if ProcessorsListView._names is None:
+            # processor settings do not change at runtime, so memoize this list once for all responses.
+            ProcessorsListView._names = [get_processor_class(path).NAME for path in settings.PAYMENT_PROCESSORS]
+        return JsonResponse(ProcessorsListView._names, safe=False)
 
 
 class CybersourceResponseView(View, OrderPlacementMixin, FulfillmentMixin):

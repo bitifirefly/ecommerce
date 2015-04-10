@@ -1,4 +1,6 @@
 """ Tests of the Payment Views. """
+import json
+
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.test.utils import override_settings
@@ -7,6 +9,7 @@ from oscar.core.loading import get_model
 
 from ecommerce.extensions.payment.constants import ProcessorConstants as PC
 from ecommerce.extensions.payment.processors import BasePaymentProcessor
+from ecommerce.extensions.payment.views import ProcessorsListView
 from ecommerce.extensions.fulfillment.status import ORDER
 
 
@@ -79,6 +82,32 @@ class DummySuccessProcessor(BasePaymentProcessor):
     def handle_processor_response(self, params):
         """ Return the expected output. """
         return {PC.SUCCESS: True, PC.ORDER_NUMBER: ORDER_NUMBER}
+
+
+class ProcessorsListViewTestCase(TestCase):
+    """ Ensures correct behavior of the payment processors list view."""
+
+    def setUp(self):
+        """
+        # reset memoized responses on the view class, so settings are re-evaluated.
+        """
+        ProcessorsListView._names = None
+
+    @override_settings(PAYMENT_PROCESSORS=[SUCCESS_PROCESSOR])
+    def test_get_one(self):
+        """
+        Ensure a single payment processor in settings is handled correctly.
+        """
+        response = self.client.get(reverse('processors_list'))
+        self.assertEqual(json.loads(response.content), ['DummySuccessProcessor'])
+
+    @override_settings(PAYMENT_PROCESSORS=[SUCCESS_PROCESSOR, FAILURE_PROCESSOR])
+    def test_get_many(self):
+        """
+        Ensure multiple processors in settings are handled correctly.
+        """
+        response = self.client.get(reverse('processors_list'))
+        self.assertEqual(sorted(json.loads(response.content)), ['DummyFailureProcessor', 'DummySuccessProcessor'])
 
 
 # Reuse the fake fulfillment module provided by the test_api tests
