@@ -1,11 +1,18 @@
 """Payment processor constants."""
 
 
-class ProcessorConstants(object):
-    """ Constants that are used by all payment processors """
+class PaymentEventNames(object):
+    """Commonly used payment event names."""
+    SETTLEMENT = u'settlement'
+
+
+class PaymentProcessorConstants(object):
+    """Constants common to all payment processors."""
     ORDER_NUMBER = 'order_number'
     SUCCESS = 'success'
+    # TODO: Remove this constant once it's no longer required by the test suite.
     PAID_EVENT_NAME = 'Paid'
+    PAYMENT_EVENT_NAMES = PaymentEventNames()
 
 
 class CybersourceFieldNames(object):

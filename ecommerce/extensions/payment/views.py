@@ -1,5 +1,4 @@
 """ Views for interacting with the payment processor. """
-from django.conf import settings
 from django.http import HttpResponse
 from django.views.generic import View
 from oscar.apps.checkout.mixins import OrderPlacementMixin
@@ -8,8 +7,8 @@ from oscar.apps.payment.models import SourceType
 from ecommerce.extensions.order.models import Order
 from ecommerce.extensions.fulfillment.status import ORDER
 from ecommerce.extensions.fulfillment.mixins import FulfillmentMixin
-from ecommerce.extensions.payment.constants import ProcessorConstants as PC
-from ecommerce.extensions.payment.helpers import get_processor_class
+from ecommerce.extensions.payment.constants import PaymentProcessorConstants as PC
+from ecommerce.extensions.payment.helpers import get_default_payment_processor
 
 
 class CybersourceResponseView(View, OrderPlacementMixin, FulfillmentMixin):
@@ -19,7 +18,7 @@ class CybersourceResponseView(View, OrderPlacementMixin, FulfillmentMixin):
 
     def post(self, request):
         """ Handle the response we've been given from the processor. """
-        payment_processor = get_processor_class(settings.PAYMENT_PROCESSORS[0])
+        payment_processor = get_default_payment_processor()
         # check the data we get
         params = request.POST.dict()
         result = payment_processor().handle_processor_response(params)

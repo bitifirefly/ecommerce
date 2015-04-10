@@ -1,14 +1,22 @@
 """Functions used for data retrieval and manipulation by the API."""
+import logging
+
 from oscar.core.loading import get_model, get_class
 
 from ecommerce.extensions.api import errors
+from ecommerce.extensions.api.constants import APIConstants as AC
 
+
+logger = logging.getLogger(__name__)
 
 Basket = get_model('basket', 'Basket')
 Product = get_model('catalogue', 'Product')
 ShippingEventType = get_model('order', 'ShippingEventType')
 
+Free = get_class('shipping.methods', 'Free')
 Selector = get_class('partner.strategy', 'Selector')
+OrderNumberGenerator = get_class('order.utils', 'OrderNumberGenerator')
+OrderTotalCalculator = get_class('checkout.calculators', 'OrderTotalCalculator')
 
 
 def get_basket(user):
@@ -51,3 +59,34 @@ def get_shipping_event_type(name):
         raise errors.ShippingEventNotFoundError(
             errors.SHIPPING_EVENT_NOT_FOUND_MESSAGE.format(name=name)
         )
+
+def get_order_metadata(basket):
+    """Retrieve information required to place an order.
+
+    Arguments:
+        basket (Basket): The basket whose contents are to be ordered.
+
+    Returns:
+        dict: Containing an order number, a shipping method, a shipping charge,
+            and a Price object representing the order total.
+    """
+    number = OrderNumberGenerator().order_number(basket)
+
+    shipping_method = Free()
+    shipping_charge = shipping_method.calculate(basket)
+    total = OrderTotalCalculator().calculate(basket, shipping_charge)
+
+    logger.info(
+        u"Preparing to place order [%s] for the contents of basket [%d]",
+        number,
+        basket.id,
+    )
+
+    metadata = {
+        AC.KEYS.ORDER_NUMBER: number,
+        AC.KEYS.SHIPPING_METHOD: shipping_method,
+        AC.KEYS.SHIPPING_CHARGE: shipping_charge,
+        AC.KEYS.ORDER_TOTAL: total,
+    }
+
+    return metadata

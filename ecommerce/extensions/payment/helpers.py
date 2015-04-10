@@ -4,9 +4,10 @@ import base64
 import hashlib
 
 from django.utils import importlib
+from django.conf import settings
 
 
-def get_processor_class(path):
+def get_payment_processor(path):
     """Return the payment processor class at the specified path.
 
     Arguments:
@@ -21,9 +22,24 @@ def get_processor_class(path):
             does not contain a class with the parsed class name.
     """
     module_path, _, class_name = path.rpartition('.')
-    processor_class = getattr(importlib.import_module(module_path), class_name)
+    payment_processor = getattr(importlib.import_module(module_path), class_name)
 
-    return processor_class
+    return payment_processor
+
+
+def get_default_payment_processor():
+    """Return the default payment processor class.
+
+    Returns:
+        class: The payment processor class located at the first path
+            specified in the PAYMENT_PROCESSORS setting.
+
+    Raises:
+        IndexError: If the PAYMENT_PROCESSORS setting is empty.
+    """
+    default_payment_processor = get_payment_processor(settings.PAYMENT_PROCESSORS[0])
+
+    return default_payment_processor
 
 
 def sign(message, secret):

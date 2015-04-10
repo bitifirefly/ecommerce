@@ -18,7 +18,7 @@ from ecommerce.extensions.order.models import Order
 from ecommerce.extensions.payment.processors import BasePaymentProcessor, Cybersource, SingleSeatCybersource
 from ecommerce.extensions.payment.errors import ExcessiveMerchantDefinedData, UnsupportedProductError
 from ecommerce.extensions.payment.constants import CybersourceConstants as CS
-from ecommerce.extensions.payment.constants import ProcessorConstants as PC
+from ecommerce.extensions.payment.constants import PaymentProcessorConstants as PC
 from ecommerce.extensions.fulfillment.status import ORDER
 
 

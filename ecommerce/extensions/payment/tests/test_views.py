@@ -5,7 +5,7 @@ from django.test.utils import override_settings
 from oscar.test import factories
 from oscar.core.loading import get_model
 
-from ecommerce.extensions.payment.constants import ProcessorConstants as PC
+from ecommerce.extensions.payment.constants import PaymentProcessorConstants as PC
 from ecommerce.extensions.payment.processors import BasePaymentProcessor
 from ecommerce.extensions.fulfillment.status import ORDER
 
